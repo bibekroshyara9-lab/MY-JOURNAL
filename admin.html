@@ -1,0 +1,34 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Journal — CMS</title><link rel="stylesheet" href="style.css">
+</head><body class="adminPage">
+<header><div class="wrap nav"><a class="logo" href="index.html">My<span>Journal</span></a>
+<nav><a href="index.html">View site</a></nav><div class="tools"><button id="theme">☾</button></div></div></header>
+<main class="admin"><div class="wrap">
+<div class="adminTop"><div><p class="eyebrow">CONTENT MANAGEMENT</p><h1>My Journal CMS</h1><p class="muted">Create, edit, publish and back up your posts.</p></div>
+<div class="topActions"><button class="btn secondary" id="exportBtn">Export backup</button><label class="btn secondary fileBtn">Import backup<input id="importFile" type="file" accept=".json"></label><button class="btn danger" id="resetBtn">Reset demo</button></div></div>
+
+<div class="stats"><div><b id="total">0</b><span>Total posts</span></div><div><b id="published">0</b><span>Published</span></div><div><b id="drafts">0</b><span>Drafts</span></div><div><b id="featuredCount">0</b><span>Featured</span></div></div>
+
+<div class="adminGrid">
+<section class="panel"><h2 id="formTitle">Create a new post</h2>
+<form id="postForm" class="adminForm">
+<input type="hidden" id="editId">
+<label>Post title<input id="title" required placeholder="e.g. A Sunday Worth Remembering"></label>
+<div class="two"><label>Category<select id="category"><option>Life & Reflections</option><option>Technology</option><option>Travel</option><option>Creativity</option></select></label>
+<label>Date<input id="date" type="date" required></label></div>
+<div class="two"><label>Status<select id="status"><option value="published">Published</option><option value="draft">Draft</option></select></label>
+<label>Reading time<input id="readTime" value="5 min read" required></label></div>
+<label>Short description<textarea id="excerpt" rows="3" required placeholder="A short summary for the home page..."></textarea></label>
+<label>Article content<textarea id="content" rows="10" required placeholder="Write your article here..."></textarea></label>
+<label>Cover image <span class="muted">(optional)</span><input id="image" type="file" accept="image/*"></label>
+<div id="imagePreview" class="imagePreview">No cover image selected</div>
+<label class="check"><input id="featured" type="checkbox"> Featured post</label>
+<div class="formButtons"><button class="btn" type="submit">Save post</button><button class="btn secondary" type="button" id="cancelEdit">Cancel</button></div>
+</form></section>
+
+<section class="panel"><div class="listHead"><h2>Your posts</h2><input id="search" placeholder="Search posts..."></div><div id="adminList"></div></section>
+</div>
+<div class="tip"><strong>Current setup:</strong> This CMS stores posts in this browser using localStorage. Export a JSON backup regularly. For a real public site with secure login and shared data across devices, connect this UI to a backend/database such as Supabase, Firebase, or a custom server.</div>
+</div></main>
+<script src="cms.js"></script></body></html>

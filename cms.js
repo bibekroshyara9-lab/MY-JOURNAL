@@ -1,0 +1,33 @@
+const KEY="mj-posts";
+const seed=[{id:"1",title:"Why I Started Writing Again",category:"Life & Reflections",date:"2026-10-03",read:"5 min read",excerpt:"Sometimes the best way to understand life is to slow down and put your thoughts into words.",content:"There is something quietly powerful about writing down a thought before it disappears.\n\nI started this journal because I wanted a place where ideas could slow down long enough to become meaningful.",featured:true,status:"published",cover:"one",image:""},
+{id:"2",title:"Small Habits, Big Changes",category:"Life & Reflections",date:"2026-09-28",read:"4 min read",excerpt:"A few simple habits can quietly transform the way we live and think.",content:"Small changes become meaningful when we repeat them. A few minutes of reading, planning, walking or reflecting can change the shape of an ordinary week.",featured:false,status:"published",cover:"two",image:""},
+{id:"3",title:"Lessons From a Quiet Weekend",category:"Travel",date:"2026-09-20",read:"6 min read",excerpt:"What happens when you give yourself permission to pause, observe, and simply be?",content:"A quiet weekend can reveal how much noise we normally carry. Slowing down makes room for observation and gratitude.",featured:false,status:"published",cover:"three",image:""}];
+
+function get(){try{let p=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(p)&&p.length)return p}catch(e){}localStorage.setItem(KEY,JSON.stringify(seed));return seed}
+function save(p){localStorage.setItem(KEY,JSON.stringify(p))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+const $=id=>document.getElementById(id), form=$("postForm"), edit=$("editId"), title=$("title"), category=$("category"), date=$("date"), status=$("status"), read=$("readTime"), excerpt=$("excerpt"), content=$("content"), image=$("image"), preview=$("imagePreview"), featured=$("featured");
+
+function stats(p){$("total").textContent=p.length;$("published").textContent=p.filter(x=>x.status!=="draft").length;$("drafts").textContent=p.filter(x=>x.status==="draft").length;$("featuredCount").textContent=p.filter(x=>x.featured).length}
+function render(){
+ const p=get(), q=($("search").value||"").toLowerCase().trim();
+ stats(p); let filtered=p.filter(x=>`${x.title} ${x.category} ${x.excerpt}`.toLowerCase().includes(q));
+ $("adminList").innerHTML=filtered.length?filtered.map(x=>`<div class="adminItem">
+ <div class="postThumb ${x.cover||"one"}">${x.image?`<img src="${x.image}" alt="">`:""}</div>
+ <div class="postInfo"><strong>${esc(x.title)}</strong><small>${esc(x.category)} · ${esc(x.date)} · ${esc(x.read)} · <em class="${x.status==="draft"?"draft":"published"}">${esc(x.status)}</em>${x.featured?" · ★ Featured":""}</small>
+ <div class="adminActions"><button class="mini" onclick="editPost('${x.id}')">Edit</button><button class="mini" onclick="toggleStatus('${x.id}')">${x.status==="draft"?"Publish":"Unpublish"}</button><button class="mini" onclick="deletePost('${x.id}')">Delete</button></div></div></div>`).join(""):"<p class='muted'>No matching posts.</p>"
+}
+function resetForm(){form.reset();edit.value="";preview.innerHTML="No cover image selected";$("formTitle").textContent="Create a new post";date.value=new Date().toISOString().slice(0,10);status.value="published"}
+form.onsubmit=e=>{e.preventDefault();let p=get(),id=edit.value||Date.now().toString(),old=p.find(x=>x.id===id),obj={id,title:title.value.trim(),category:category.value,date:date.value,status:status.value,read:read.value.trim(),excerpt:excerpt.value.trim(),content:content.value.trim(),featured:featured.checked,cover:old?.cover||["one","two","three"][p.length%3],image:old?.image||""};if(edit.value)p=p.map(x=>x.id===id?obj:x);else p.unshift(obj);save(p);resetForm();render();alert("Post saved.")};
+window.editPost=id=>{let x=get().find(p=>p.id===id);if(!x)return;edit.value=x.id;title.value=x.title;category.value=x.category;date.value=x.date;status.value=x.status||"published";read.value=x.read;excerpt.value=x.excerpt;content.value=x.content;featured.checked=!!x.featured;if(x.image){preview.innerHTML=`<img src="${x.image}" alt="Cover preview">`}else preview.textContent="No cover image selected";$("formTitle").textContent="Edit post";scrollTo({top:0,behavior:"smooth"})};
+window.deletePost=id=>{if(confirm("Delete this post?")){save(get().filter(x=>x.id!==id));render()}};
+window.toggleStatus=id=>{let p=get().map(x=>x.id===id?{...x,status:x.status==="draft"?"published":"draft"}:x);save(p);render()};
+$("cancelEdit").onclick=resetForm;$("search").oninput=render;
+image.onchange=()=>{let f=image.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{preview.innerHTML=`<img src="${r.result}" alt="Cover preview">`;preview.dataset.data=r.result};r.readAsDataURL(f)};
+const originalSubmit=form.onsubmit;form.onsubmit=e=>{e.preventDefault();let old=get().find(x=>x.id===edit.value),data=preview.dataset.data||old?.image||"";let p=get(),id=edit.value||Date.now().toString();let obj={id,title:title.value.trim(),category:category.value,date:date.value,status:status.value,read:read.value.trim(),excerpt:excerpt.value.trim(),content:content.value.trim(),featured:featured.checked,cover:old?.cover||["one","two","three"][p.length%3],image:data};p=edit.value?p.map(x=>x.id===id?obj:x):[obj,...p];save(p);delete preview.dataset.data;resetForm();render();alert("Post saved.")};
+
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(get(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="my-journal-backup.json";a.click();URL.revokeObjectURL(a.href)};
+$("importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let data=JSON.parse(r.result);if(!Array.isArray(data))throw Error();save(data);render();alert("Backup imported.")}catch{alert("Invalid backup file.")}};r.readAsText(f)};
+$("resetBtn").onclick=()=>{if(confirm("Reset to demo posts? Your current browser posts will be replaced.")){localStorage.removeItem(KEY);location.reload()}};
+if(localStorage.getItem("mj-dark")==="1")document.body.classList.add("dark");const theme=$("theme");if(theme)theme.onclick=()=>{document.body.classList.toggle("dark");localStorage.setItem("mj-dark",document.body.classList.contains("dark")?"1":"0");theme.textContent=document.body.classList.contains("dark")?"☀":"☾"};
+resetForm();render();
